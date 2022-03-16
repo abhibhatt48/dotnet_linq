@@ -5,16 +5,8 @@ using System.Collections.Generic;
 					
 public class Program
 {
-	
-	
-	
-	    
 
-    public static void Main()
-	{		
-		Program program = new Program();
-
-		IList <Employee> employeeList  = new List<Employee>() { 
+	IList <Employee> employeeList  = new List<Employee>() { 
 			new Employee(){ EmployeeID = 1, EmployeeFirstName = "Rajiv", EmployeeLastName = "Desai", Age = 49},
 			new Employee(){ EmployeeID = 2, EmployeeFirstName = "Karan", EmployeeLastName = "Patel", Age = 32},
 			new Employee(){ EmployeeID = 3, EmployeeFirstName = "Sujit", EmployeeLastName = "Dixit", Age = 28},
@@ -38,77 +30,15 @@ public class Program
 			new Salary(){ EmployeeID = 6, Amount = 400, Type = SalaryType.Performance},
 			new Salary(){ EmployeeID = 7, Amount = 4700, Type = SalaryType.Monthly}
 		};
-		var query = employeeList.Join(salaryList,
-										employee => employee.EmployeeID,
-										salary => salary.EmployeeID,
-										
-										(employee,salary) => new 
-										{
-											EmployeeFirstname = employee.EmployeeFirstName,
-											EmployeeLastName = employee.EmployeeLastName,
-											Age = employee.Age,
-											Amount = salary.Amount,
-											Type = salary.Type
-										})
-										.OrderBy(employee => employee.EmployeeFirstname);
-										foreach (var item in query)
-											{
-			
-												Console.WriteLine("{0} - {1} - {2} - {3} - {4}", item.EmployeeFirstname, item.EmployeeLastName, item.Age, item.Amount, item.Type);
-											}
+	
+	
+	
+	    
 
-
-		var query2 = employeeList.Join(salaryList,
-                                                employee => employee.EmployeeID,
-                                                salary => salary.EmployeeID,
-
-                                                (employee, salary) => new
-                                                {
-                                                    EmployeeFirstname = employee.EmployeeFirstName,
-                                                    EmployeeLastName = employee.EmployeeLastName,
-                                                    Age = employee.Age,
-                                                    Amount = salary.Amount,
-													Type = salary.Type
-                                                })
-                                                .OrderByDescending(employee => employee.Age)
-												.ThenBy(salary => salary.Type)
-                                                .Skip(1)
-                                                .Take(1);
-											System.Console.WriteLine("\n result 2 is : \n");
-												foreach (var item in query2)
-											{
-			
-												Console.WriteLine("{0} - {1} - {2} - {3} - {4}", item.EmployeeFirstname, item.EmployeeLastName, item.Age, item.Amount, item.Type);
-											}
-
-
-		var query3 = employeeList.Join(salaryList,
-                                                employee => employee.EmployeeID,
-                                                salary => salary.EmployeeID,
-
-                                                (employee, salary) => new
-                                                {
-                                                    EmployeeFirstname = employee.EmployeeFirstName,
-                                                    EmployeeLastName = employee.EmployeeLastName,
-                                                    Age = employee.Age,
-                                                    Amount = salary.Amount
-                                                })
-                                                .Where(employee => employee.Age > 30 )
-                                                .Skip(1);
-                                                //.FirstOrDefault();
-											System.Console.WriteLine("\n result 3 is : \n");
-												foreach (var item in query3)
-											{
-													
-												Console.WriteLine("{0} - {1} - {2} - {3}", item.EmployeeFirstname, item.EmployeeLastName, item.Age, item.Amount);
-											}
-
-										
-
-										
-		
-
-		
+    public static void Main()
+	{		
+		Program program = new Program();
+	
 		program.Task1();
 		
 		program.Task2();
@@ -116,18 +46,116 @@ public class Program
 		program.Task3();
 	}
 	
-	public void Task1(){
+	public void Task1()
+	{
+
+		System.Console.WriteLine("\n task 1 is : \n");
+                    
+        var sumsalary = from salary in this.salaryList
+                          group salary by salary.EmployeeID
+                          into sal
+                          select new{
+                            EmployeeID = sal.Key,
+                            Sum = sal.Sum( s => s.Amount )
+                            };
+                    
+        var query =from employee in this.employeeList
+                    join salary in sumsalary
+                      on employee.EmployeeID
+                      equals
+                      salary.EmployeeID
+                    orderby employee.EmployeeFirstName
+                    select new{
+                          e = employee,
+                          salary = salary.Sum,
+                      };
+                      
+                
+        foreach (var item in query)
+        {     try{
+                Console.WriteLine($" Name: {item.e.EmployeeFirstName} {item.e.EmployeeLastName}, Salary: {item.salary} , {item.e.Age}  ");
+                 }
+				 
+				 catch(Exception e)
+				 {
+                   System.Console.WriteLine("Exception XXXXXX");
+                 }        
+        }
 		
 	}
 	
-	public void Task2(){
+	public void Task2()
+	{
 
+		System.Console.WriteLine("\n task 2 is : \n");
+        
+        
+        var ms = from salary in this.salaryList
+                            where salary.Type == SalaryType.Monthly 
+                            select salary;
+
+       var query2 = from salary in ms
+                      join employee in this.employeeList
+                             on salary.EmployeeID
+                             equals
+                             employee.EmployeeID
+                      orderby employee.Age descending
+                      select new{
+                            salary,
+                            employee
+                               };
+
+        foreach (var item in query2.Skip(1).Take(1))
+        {
+                try{
+                    Console.WriteLine($" EmployeeID: {item.employee.EmployeeID}, Name: {item.employee.EmployeeFirstName} {item.employee.EmployeeLastName}, Age: {item.employee.Age}, Salary: {item.salary.Amount}");
+                   Console.WriteLine();
+                }
+				
+				catch(Exception e)
+				{
+                             Console.WriteLine("exception : XXXXX");
+                }
+        }
 	}
 	
 	public void Task3(){
-		 //Implementation
+
+		System.Console.WriteLine("\n task 3 is : \n");
+
+
+		  var means = from salary in this.salaryList
+                      group salary by salary.EmployeeID
+                      into sal
+                      select new{
+                        EmployeeID = sal.Key,
+                        amt = sal.Average( s => s.Amount)
+                     };
+
+        var grou_p = (from employee in employeeList
+                     where employee.Age > 30 
+                     select employee);
+        
+        var query3 = from employee in grou_p
+                      join salary in means
+                        on employee.EmployeeID
+                        equals
+                        salary.EmployeeID
+                      orderby employee.EmployeeFirstName 
+                      select new{
+                          emp = employee,
+                          avg = salary.amt
+                      };
+
+        foreach (var item in query3)
+        {   
+            Console.WriteLine($" EmployeeID: {item.emp.EmployeeID}, Name: {item.emp.EmployeeFirstName} {item.emp.EmployeeLastName}, Age: {item.emp.Age},  Mean salary: {item.avg:N1}");
+            
+        }   
+        }
+
 	}
-}
+
 public enum SalaryType{
 	Monthly,
 	Performance,
